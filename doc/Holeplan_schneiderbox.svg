@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="holes_schneiderbox.svg"
+   sodipodi:docname="Holeplan_schneiderbox.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -27,9 +27,9 @@
      inkscape:cx="562.4634"
      inkscape:cy="368.1679"
      inkscape:window-width="1920"
-     inkscape:window-height="1043"
+     inkscape:window-height="1163"
      inkscape:window-x="0"
-     inkscape:window-y="307"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
@@ -201,7 +201,7 @@
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect12847-7-6-6-4)"><tspan
          x="82.993636"
          y="-80.415532"
-         id="tspan96100">140 mm</tspan></text>
+         id="tspan1214">140 mm</tspan></text>
     <g
        id="g29704"
        transform="translate(0,67.817148)">
@@ -212,7 +212,7 @@
          style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect12847)"><tspan
            x="97.969625"
            y="-80.415532"
-           id="tspan96102">4mm</tspan></text>
+           id="tspan1216">4mm</tspan></text>
       <g
          id="g17166"
          transform="translate(-78.750316,-108.11061)">
@@ -291,7 +291,7 @@
     </g>
     <g
        id="g29689"
-       transform="translate(2.6768218,73.619865)">
+       transform="translate(2.1476551,73.090698)">
       <text
          xml:space="preserve"
          transform="matrix(0.26458333,0,0,0.26458333,55.754217,42.011128)"
@@ -299,7 +299,7 @@
          style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect12847-7-6-6)"><tspan
            x="89.009638"
            y="-80.415532"
-           id="tspan96104">2.5mm</tspan></text>
+           id="tspan1218">2.5mm</tspan></text>
       <g
          id="g17166-2-4"
          transform="matrix(0.56069262,0,0,0.56069262,16.131427,-61.830674)">
@@ -420,7 +420,7 @@
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect12847-7-6-6-4-8)"><tspan
          x="82.993636"
          y="-80.415532"
-         id="tspan96106">100 mm</tspan></text>
+         id="tspan1220">100 mm</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,148.97357,134.78652)"
@@ -428,7 +428,7 @@
        style="font-size:21.3333px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect12847-7-6-6-4-4)"><tspan
          x="89.094965"
          y="-80.415532"
-         id="tspan96108">65 mm</tspan></text>
+         id="tspan1222">65 mm</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,-192.46211,10.541983)"
@@ -436,18 +436,18 @@
        style="font-size:26.6667px;line-height:1.25;font-family:sans-serif;text-align:center;white-space:pre;shape-inside:url(#rect32911)"><tspan
          x="1000.5747"
          y="54.296572"
-         id="tspan96110">Hole plan for base plate
+         id="tspan1224">Hole plan for base plate
 </tspan><tspan
          x="1096.9881"
          y="87.629946"
-         id="tspan96112">Rpi B+ &amp;
+         id="tspan1226">Rpi B+ &amp;
 </tspan><tspan
          x="940.38795"
          y="120.96332"
-         id="tspan96114">Schneider casing 150x105x80mm
+         id="tspan1228">Schneider casing 150x105x80mm
 </tspan><tspan
          x="951.80126"
          y="154.29669"
-         id="tspan96116">author: R.Rietbroek, 2022-02-18</tspan></text>
+         id="tspan1230">author: R.Rietbroek, 2022-02-18</tspan></text>
   </g>
 </svg>
