@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+
 import serial
 import gzip
 import re
 
 class File:
-    def _init_(self):
+    def__init__(self):
         self.current_date = None
         self.old_date = None
         self.buffer = []
