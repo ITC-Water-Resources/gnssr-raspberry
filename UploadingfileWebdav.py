@@ -36,7 +36,7 @@ basicup = requests.auth.HTTPBasicAuth(upluser, uplpw)
 #print(uplpw)
 
 ### Regular expression which fits a log file ###
-relog='[0-9]{4}-[0-9]{2}-[0-9]{2}.gz'
+relog='[0-9]{4}-[0-9]{2}-[0-9]{2}-gnssr2.gz'
 
 ### Get a listing for the remote directory ###
 remotelogs=getwebdavListing(webdav,basicup,relog)
