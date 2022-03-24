@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 class File:
-    def _init_(self):
+    def __init__(self):
         self.current_date = None
         self.old_date = None
         self.buffer = []
@@ -38,7 +38,7 @@ class File:
                 if re.match("\d{6}", date_string):
                     self.current_date = datetime.strptime(date_string, '%d%m%y').date()
                     
-            except Exception as E
+            except Exception as E:
                 raise (E)
 
         ''' Rotating and writing to a file if we know current date '''
@@ -62,5 +62,5 @@ while True:
         file.write(ser.readline().strip())
 
     except KeyboardInterrupt:
-        file.close()
+        file.close()      
         break
