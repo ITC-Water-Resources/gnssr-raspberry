@@ -3,13 +3,16 @@
 import serial
 import gzip
 import re
+from datetime import datetime
+import os
 
 class File:
-    def__init__(self):
+    def _init_(self):
         self.current_date = None
         self.old_date = None
         self.buffer = []
         self.fid = None
+        self.hostname = os.uname()[1]
 
     def ropen_file(self):
         ''' This function rotates a file (if file descriptor is open) or only open a new 
@@ -17,7 +20,7 @@ class File:
         if self.fid:
             self.fid.close()
 
-        self.filenamegz = "{}-gnssr2.gz".format(self.current_date)
+        self.filenamegz = "{}-{}.gz".format(self.current_date, self.hostname)
         self.fid = gzip.open(self.filenamegz, 'wt')
         self.old_date = self.current_date
 
@@ -29,11 +32,11 @@ class File:
         ''' Looking for a new timestamp in GNRMC '''
         if re.match("\$GNRMC.*\d{6}\,.", message):
             try:
-                current_date = message.split(",")[9].strip()
-                #print(current_date)
+                date_string = message.split(",")[9].strip()
+                #print(date_string)
 
-                if re.match("\d{6}", current_date):
-                    self.current_date = current_date
+                if re.match("\d{6}", date_string):
+                    self.current_date = datetime.strptime(date_string, '%d%m%y').date()
                     
             except Exception as E
                 raise (E)
