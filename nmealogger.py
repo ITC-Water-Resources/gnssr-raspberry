@@ -5,7 +5,7 @@ Authors: Roelof Rietbroek
 Nov 2022
 """
 
-from raspberry_gnssr.gnssr import GNSSRconfig
+from gnssr_raspberry.gnssr import GNSSRconfig
 import asyncio
 import argparse
 import sys
