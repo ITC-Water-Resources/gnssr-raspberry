@@ -1,0 +1,14 @@
+# Yaml file for raspberry gnssr-r configuration
+# Copy this file and replace values with your own
+---
+file_base: gnssr0
+data_dir: /tmp/gnssr_nmea/
+device: /dev/ttyAMA0
+baudrate: 9600
+serialsleep: 20 #microsecond sleep in between getting nmea messages from the serial port to get other stuff done
+#Possibly upload to a webdav folder
+webdav:
+  url: "https://surfdrive.surf.nl/files/public.php/webdav"
+  user: Changeme
+  passw: Changemetoo
+
