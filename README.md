@@ -2,10 +2,10 @@
 
 [Instructions for building together the casing](doc/README.md)
 
-# Raspberry Information
+# Using the NMEA logger
 ---
 
-### Install the python module
+### Install this python module from the repository root directory
 ```
 pip install .
 ```
@@ -35,8 +35,6 @@ sudo cp nmealogger.service /etc/systemd/system/nmealogger.service
 ```
 
 Make sure to replace *User* with a user who can access the serial port and the *data_dir* provided in the [configuration file](nmeaconfig.yml)
-
-```
 Before starting the service, execute the following line. It reloads to take the change into account
 ```
 sudo systemctl daemon-reload
