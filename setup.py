@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 
 setuptools.setup(
-    name="raspberry_gnssr",
+    name="gnssr_raspberry",
     author="Roelof Rietbroek",
     author_email="r.rietbroek@utwente.nl",
     version="1.0",
