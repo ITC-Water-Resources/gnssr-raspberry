@@ -223,7 +223,7 @@ class GNSSRconfig:
             #wait for synctask to finish with timeout as a backup 
             # It should have been finished, and if not it should be cancelled 
             try:
-                await asyncio.wait_for(synctask, timeout=1)
-            except asyncio.exceptions.TimeoutError:
+                await asyncio.wait_for(synctask, timeout=60)
+            except asyncio.TimeoutError:
                 pass
 
