@@ -68,6 +68,9 @@ class GNSSRconfig:
             #default of 20 microseconds
             self.serialsleep=20e-3
 
+        #possibly create the data directory if it doesn't exist yet
+        if not os.path.exists(self.cfg['data_dir']):
+            os.mkdir(self.cfg['data_dir'])
         #set the filename of the open logfile
         self.openLogFile=os.path.join(self.cfg['data_dir'],self.cfg['file_base']+".tmp")
         #default (will be updated from GNSS info)
@@ -75,7 +78,7 @@ class GNSSRconfig:
         
         self.openSerial()
         self.setupWebdav()
-        
+     
     def setupWebdav(self):
         if "webdav" in self.cfg:
             self.webdav = self.cfg['webdav']['url']
@@ -102,11 +105,15 @@ class GNSSRconfig:
         rmcregex=re.compile(b'^\$G[NPL]RMC')
         #open logstream
         self.openLog()
-        while True:
+        while self.isLogging:
+
             #Asynchronously wait for new serial data
             nmeamsg=await self.getnmea()
             if not nmeamsg.endswith(b"\n"):
-                #no info -> try again later
+                #no info -> try again later (or in the case of simulate data rewind the buffer
+                if self.simulate:
+                    self.serial.seek(0)
+                    continue
                 print("no data found on the serial port, retrying in one second")
                 await asyncio.sleep(1)
                 continue
@@ -142,6 +149,10 @@ class GNSSRconfig:
         if self.logfid:
             self.logfid.close()
             self.logfid=None 
+        else:
+            #nothing to do
+            return
+
         #also move the file to a more suitable name
         logfilebase=os.path.join(self.cfg['data_dir'],f"{self.cfg['file_base']}_{self.logdate.isoformat()}")
         #make sure not to overwrite existing files
@@ -217,7 +228,8 @@ class GNSSRconfig:
 
     
     async def startLoggingDaemon(self):
-        while True:
+        self.isLogging=True
+        while self.isLogging:
             synctask=asyncio.create_task(self.uploadLogs())
             await self.rotateNMEAlog()
             #wait for synctask to finish with timeout as a backup 
@@ -226,4 +238,8 @@ class GNSSRconfig:
                 await asyncio.wait_for(synctask, timeout=60)
             except asyncio.TimeoutError:
                 pass
+
+    def stopLoggingDaemon(self,*args):
+        """Gracefully stop logging (closes logging file)"""
+        self.isLogging=False
 

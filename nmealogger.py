@@ -9,6 +9,7 @@ from gnssr_raspberry.gnssr import GNSSRconfig
 import asyncio
 import argparse
 import sys
+import signal
 
 def main(argv):
     usage="GNSSR nmea logging and upload daemon"
@@ -22,12 +23,15 @@ def main(argv):
     parser.add_argument('-n','--noupload',action='store_true',
             help="Don't attempt to upload any logs")
     args=parser.parse_args(argv[1:]) 
-    
+
+
+
     gnssr=GNSSRconfig(args.config,args.simulate,args.noupload)
-    try:
-        asyncio.run(gnssr.startLoggingDaemon())
-    except KeyboardInterrupt:
-        gnssr.closeLog()
+    # register graceful killing of logging routine
+    signal.signal(signal.SIGINT, gnssr.stopLoggingDaemon)
+    signal.signal(signal.SIGTERM, gnssr.stopLoggingDaemon)
+
+    asyncio.run(gnssr.startLoggingDaemon())
 
 
 if __name__ == "__main__":
