@@ -202,7 +202,7 @@ class GNSSRconfig:
         </prop>
         </propfind>
         """
-        timeout = aiohttp.ClientTimeout(total=None, sock_connect=20, sock_read=20 )
+        timeout = aiohttp.ClientTimeout(total=None, sock_connect=60, sock_read=60 )
 
         regexlog=re.compile(f"{self.cfg['file_base']}_.+[0-9]{{2}}.gz")
         self.cancelUpload=False
