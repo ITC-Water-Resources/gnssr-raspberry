@@ -65,8 +65,8 @@ class GNSSRconfig:
         if "serialsleep" in self.cfg:
             self.serialsleep=1e-3*self.cfg["serialsleep"]
         else:
-            #default of 20 microseconds
-            self.serialsleep=20e-3
+            #default of 100 milliseconds
+            self.serialsleep=100e-3
 
         #possibly create the data directory if it doesn't exist yet
         if not os.path.exists(self.cfg['data_dir']):
@@ -75,7 +75,8 @@ class GNSSRconfig:
         self.openLogFile=os.path.join(self.cfg['data_dir'],self.cfg['file_base']+".tmp")
         #default (will be updated from GNSS info)
         self.logdate=date.today()
-        
+        self.triggerRotate=False
+        self.cancelUpload=False
         self.openSerial()
         self.setupWebdav()
      
@@ -109,24 +110,24 @@ class GNSSRconfig:
 
             #Asynchronously wait for new serial data
             nmeamsg=await self.getnmea()
-            if not nmeamsg.endswith(b"\n"):
-                #no info -> try again later (or in the case of simulate data rewind the buffer
-                if self.simulate:
-                    self.serial.seek(0)
-                    continue
-                print("no data found on the serial port, retrying in one second")
+            if nmeamsg is None:
                 await asyncio.sleep(1)
                 continue
+
             if rmcregex.match(nmeamsg):
                 currentdate=datetime.strptime(nmeamsg.split(b",")[9].decode('utf-8'),"%d%m%y").date()
                 if not prevdate:
                     prevdate=currentdate
                     self.logdate=currentdate
 
-                if prevdate < currentdate:
+                if prevdate < currentdate or self.triggerRotate:
+                    self.triggerRotate=False
                     break #will stop the loop at a date turnover
 
             self.writeToLog(nmeamsg)
+        
+        #reset rotate trigger
+        self.triggerRotate=False
 
         self.closeLog()
     
@@ -135,7 +136,7 @@ class GNSSRconfig:
         if self.logfid:
             self.logfid.write(msg)
 
-
+    
 
     def openLog(self):
         print(f"Opening log {self.openLogFile}")
@@ -172,13 +173,27 @@ class GNSSRconfig:
 
     async def getnmea(self):
         line=self.serial.readline()
+
         #sleeping xx microseconds allows other asynchronous work (e.g. file uploads) to be done while waiting for a new line on the serial input
         #note: we expect around ~10 nmea messages (lines) per seconds so we can wait and do other stuff in between
         await asyncio.sleep(self.serialsleep)
+        
+        if not line.endswith(b"\n"):
+            #no info -> try again later (or in the case of simulate data rewind the buffer
+            if self.simulate:
+                #simulate a new dataset
+                self.serial.seek(0)
+                self.triggerRotate=True
+                print("simulating new data after 10 seconds..")
+                await asyncio.sleep(10)
+            line=None
         return line
 
  
-    async def getwebdavListing(self,regexlog):
+    async def webdavUpload(self):
+        """
+        Upload logs using webdav
+        """
         xmlprop="""<propfind xmlns="DAV:">
         <prop>
             <getlastmodified xmlns="DAV:"/>
@@ -187,24 +202,47 @@ class GNSSRconfig:
         </prop>
         </propfind>
         """
+        timeout = aiohttp.ClientTimeout(total=None, sock_connect=20, sock_read=20 )
 
+        regexlog=re.compile(f"{self.cfg['file_base']}_.+[0-9]{{2}}.gz")
+        self.cancelUpload=False
+    
         
-        async with aiohttp.ClientSession(auth=self.webdavauth) as client:
-            response= await client.request('PROPFIND',self.webdav,data=xmlprop)
-            xmlbytes=await response.content.read() 
-        xmlel=ET.fromstring(xmlbytes)
-        
-        return  [os.path.basename(filename.text) for filename in xmlel.findall('.//{DAV:}href') if regexlog.search(filename.text)]
+        async with aiohttp.ClientSession(auth=self.webdavauth,timeout=timeout) as client:
+            while self.isLogging and not self.cancelUpload:
+                #try to get a webdav listing
+                try:
+                    response= await client.request('PROPFIND',self.webdav,data=xmlprop)
+                    xmlbytes=await response.content.read()
+                    print("host is online and directory is listed, proceeding upload")
+                    break
+                except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientConnectorError):
+                    # host may be offline so wait and try again after x seconds
+                    waitforsec=60
+                    print(f"host is offline, sleeping for {waitforsec} seconds before retrying")
+                    await asyncio.sleep(waitforsec)
+            
+            if self.cancelUpload:
+                self.cancelUpload=False
+                return
+                    
+            xmlel=ET.fromstring(xmlbytes)
+            remotelogs=[os.path.basename(filename.text) for filename in xmlel.findall('.//{DAV:}href') if regexlog.search(filename.text)]
 
+            # also find most up to date local logs
+            locallogs=[filename for filename in os.listdir(self.cfg['data_dir']) if regexlog.search(filename)]
+            #and check which ones need uploading
+            uploadlogs=[os.path.join(self.cfg['data_dir'],filename) for filename in locallogs if filename not in remotelogs]
 
-    async def uploadLogWebdav(self,filename):
-        """Upload a file to a  webdav folder"""
-        
-        uploadurl=self.webdav+"/"+os.path.basename(filename)
-        async with aiohttp.ClientSession(auth=self.webdavauth) as client:
-            with open (filename,'rb') as fid:
-                print(f"Uploading {filename}")
-                await client.put(uploadurl,data=fid.read())
+            for logf in uploadlogs:
+                uploadurl=self.webdav+"/"+os.path.basename(logf)
+                with open (logf,'rb') as fid:
+                    print(f"Uploading {os.path.basename(logf)}")
+                    try:
+                        await client.put(uploadurl,data=fid.read())
+                    except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientConnectorError):
+                        print(f"failed to upload {logf}") 
+
     
 
     async def uploadLogs(self):
@@ -213,29 +251,22 @@ class GNSSRconfig:
             #no upload locations specified or upload is disabled 
             print("No upload location specified or disabled, cancelled upload")
             return
+        await self.webdavUpload()
 
-        regexlog=re.compile(f"{self.cfg['file_base']}_.+[0-9]{{2}}.gz")
-        remotelogs=await self.getwebdavListing(regexlog)
-        
-        #get a local list with files which potentially need to be uploaded
-
-        locallogs=[filename for filename in os.listdir(self.cfg['data_dir']) if regexlog.search(filename)]
-
-
-        uploadlogs=[os.path.join(self.cfg['data_dir'],filename) for filename in locallogs if filename not in remotelogs]
-        for logf in uploadlogs:
-            await self.uploadLogWebdav(logf)
 
     
     async def startLoggingDaemon(self):
         self.isLogging=True
         while self.isLogging:
+            self.cancelUpload=False
             synctask=asyncio.create_task(self.uploadLogs())
             await self.rotateNMEAlog()
             #wait for synctask to finish with timeout as a backup 
             # It should have been finished, and if not it should be cancelled 
             try:
-                await asyncio.wait_for(synctask, timeout=60)
+                print("wait for upload job to finish")
+                self.cancelUpload=True
+                await asyncio.wait_for(synctask, timeout=20)
             except asyncio.TimeoutError:
                 pass
 
